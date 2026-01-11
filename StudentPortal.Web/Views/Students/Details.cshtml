@@ -1,0 +1,70 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+
+@model StudentPortal.Web.Models.Entities.Student
+<h2>Student Details</h2>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <td>@Model.Name</td>
+    </tr>
+    <tr>
+        <th>Email</th>
+        <td>@Model.Email</td>
+    </tr>
+    <tr>
+        <th>Phone</th>
+        <td>@Model.Phone</td>
+    </tr>
+    <tr>
+        <th>Enrollment Date</th>
+        <td>@Model.EnrollmentDate.ToString("yyyy-MM-dd")</td>
+    </tr>
+    <tr>
+        <th>Is Active</th>
+        <td>@(Model.IsActive ? "Yes" : "No")</td>
+    </tr>
+    <tr class="mt-3">
+        <a asp-controller="Students" asp-action="List" class="btn btn-outline-secondary">
+            ← Back to List
+        </a>
+    </tr>
+</table>
+
+@* <div class="container mt-5">
+
+    <dl class="row mb-0">
+        <dt class="col-sm-4 text-muted">Name</dt>
+        <dd class="col-sm-6">@Model.Name</dd>
+
+        <dt class="col-sm-4 text-muted">Email</dt>
+        <dd class="col-sm-6">@Model.Email</dd>
+
+        <dt class="col-sm-4 text-muted">Phone</dt>
+        <dd class="col-sm-6">@Model.Phone</dd>
+
+        <dt class="col-sm-4 text-muted">Enrollment Date</dt>
+        <dd class="col-sm-6">
+            @Model.EnrollmentDate.ToString("yyyy-MM-dd")
+        </dd>
+
+        <dt class="col-sm-4 text-muted">Active</dt>
+        <dd class="col-sm-6">
+            <span class="badge @(Model.IsActive ? "bg-success" : "bg-secondary")">
+                @(Model.IsActive ? "Yes" : "No")
+            </span>
+        </dd>
+    </dl>
+
+    <div class="card-footer text-end bg-white">
+        <a asp-action="List" asp-controller="Students" class="btn btn-outline-secondary">
+            ← Back to List
+        </a>
+    </div>
+
+</div> *@
