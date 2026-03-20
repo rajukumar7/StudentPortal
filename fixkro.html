@@ -1,0 +1,1504 @@
+import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
+import { 
+  Search, Globe, Heart, ShoppingCart, User, 
+  ArrowRight, Phone, Mail, MapPin, Facebook, 
+  Instagram, Linkedin, Star, ChevronRight, ChevronLeft,
+  Award, Clock, HeadphonesIcon, Settings, DollarSign,
+  MonitorSmartphone, ShieldCheck, CheckCircle2,
+  LogOut, Plus, Trash2, Edit, CreditCard, Check, FileText, Package,
+  Calendar, Wrench, X, Sun, Moon
+} from 'lucide-react';
+
+// --- CONTEXT & STATE MANAGEMENT ---
+const AppContext = createContext();
+
+const initialProducts = [
+  { id: 1, name: 'Mobile Cover', price: 100, originalPrice: 150, discount: 33, img: 'https://images.unsplash.com/photo-1605236453806-6ff36851218e?auto=format&fit=crop&q=80&w=300', category: 'Accessories', stock: 50, reviews: [{user: 'Bablu Kumar', rating: 5, comment: 'Great fit and very fast service!'}] },
+  { id: 2, name: 'Screen Guard', price: 100, originalPrice: 100, discount: 0, img: 'https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=300', category: 'Accessories', stock: 30, reviews: [] },
+  { id: 3, name: 'Charger', price: 100, originalPrice: 200, discount: 50, img: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&q=80&w=300', category: 'Accessories', stock: 20, reviews: [] },
+  { id: 4, name: 'Earphones', price: 100, originalPrice: 150, discount: 33, img: 'https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?auto=format&fit=crop&q=80&w=300', category: 'Accessories', stock: 15, reviews: [] },
+  { id: 5, name: 'Data Cable', price: 100, originalPrice: 120, discount: 16, img: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&q=80&w=300', category: 'Accessories', stock: 100, reviews: [] },
+];
+
+const initialRepairServices = [
+  { id: 1, name: 'Mobile Screen Replacement', img: 'https://images.unsplash.com/photo-1597740985671-2a8a3b80502e?auto=format&fit=crop&q=80&w=300' },
+  { id: 2, name: 'Battery Replacement', img: 'https://images.unsplash.com/photo-1585338107529-13afc5f02586?auto=format&fit=crop&q=80&w=300' },
+  { id: 3, name: 'Water Damage Repair', img: 'https://images.unsplash.com/photo-1601524909162-ae8725290836?auto=format&fit=crop&q=80&w=300' },
+  { id: 4, name: 'Charging Port Repair', img: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&q=80&w=300' },
+  { id: 5, name: 'Speaker Repair', img: 'https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?auto=format&fit=crop&q=80&w=300' },
+];
+
+const initialApplianceServices = [
+  { id: 6, name: 'Fan Repair', img: 'https://images.unsplash.com/photo-1618625983796-0ab212390f77?auto=format&fit=crop&q=80&w=400' },
+  { id: 7, name: 'Switch & Wiring Repair', img: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&q=80&w=400' },
+  { id: 8, name: 'Cooler Repair', img: 'https://images.unsplash.com/photo-1558227691-41ea78d1f631?auto=format&fit=crop&q=80&w=400' },
+  { id: 9, name: 'AC Repair & Gas Filling', img: 'https://images.unsplash.com/photo-1585338107529-13afc5f02586?auto=format&fit=crop&q=80&w=400' },
+];
+
+const mockAdmin = { id: 'admin1', name: 'Admin', email: 'admin@fixkaro.com', password: 'admin', role: 'admin', phone: '9999999999', addresses: [] };
+
+// --- ANIMATION COMPONENT ---
+const AnimatedSection = ({ children, className = "" }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef();
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setIsVisible(true);
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} className={`transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'} ${className}`}>
+      {children}
+    </div>
+  );
+};
+
+// --- COMPONENTS ---
+const TopBar = () => (
+  <div className="bg-[#0b2c4d] text-white text-sm py-2 text-center w-full">
+    Screen Guard + Back Cover Combo par 30% Discount ||
+  </div>
+);
+
+const Navbar = ({ setView }) => {
+  const { state, logout, searchQuery, setSearchQuery, theme, toggleTheme } = useContext(AppContext);
+  const cartCount = state.cart.reduce((acc, item) => acc + item.qty, 0);
+  
+  return (
+    <nav className="bg-white dark:bg-slate-900 py-4 px-6 md:px-12 flex items-center justify-between shadow-sm sticky top-0 z-50 transition-colors duration-300">
+      <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => setView('home')}>
+        <div className="flex flex-col items-center">
+          <div className="flex items-center text-[#0b2c4d] dark:text-blue-400 font-bold text-2xl tracking-tight">
+            <span className="text-[#fbbd06]">FIX</span>KAR<Settings className="w-5 h-5 ml-0.5 text-[#0b2c4d] dark:text-blue-400" />
+          </div>
+          <span className="text-[8px] text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1">Mobile & Electrical Service</span>
+        </div>
+      </div>
+
+      <div className="hidden md:flex flex-1 max-w-sm mx-8 relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <input 
+          type="text" 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search......." 
+          className="w-full border border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-[#fbbd06] transition-colors"
+        />
+      </div>
+
+      <div className="hidden lg:flex items-center gap-8 text-gray-700 dark:text-gray-300 text-sm font-medium mr-4">
+        <button onClick={() => setView('about')} className="hover:text-[#fbbd06] transition-colors">About Us</button>
+        <button onClick={() => setView('services')} className="hover:text-[#fbbd06] transition-colors">Services</button>
+        <button onClick={() => setView('faq')} className="hover:text-[#fbbd06] transition-colors">FAQ</button>
+        <button onClick={() => setView('contact')} className="hover:text-[#fbbd06] transition-colors">Contact Us</button>
+      </div>
+
+      <div className="flex items-center gap-4 shrink-0">
+        <div className="hidden md:flex items-center gap-1 border border-gray-200 dark:border-slate-700 px-3 py-1.5 rounded-md text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
+          <Globe className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+          <span className="text-gray-700 dark:text-gray-300">English</span>
+          <ChevronRight className="w-4 h-4 text-gray-400 rotate-90" />
+        </div>
+
+        <button onClick={toggleTheme} className="p-1.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </button>
+
+        <div className="relative cursor-pointer" onClick={() => setView('wishlist')}>
+          <Heart className="w-5 h-5 text-gray-700 dark:text-gray-300 hover:text-[#fbbd06] transition-colors" />
+          {state.wishlist.length > 0 && <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">{state.wishlist.length}</span>}
+        </div>
+        <div className="relative cursor-pointer" onClick={() => setView('cart')}>
+          <ShoppingCart className="w-5 h-5 text-gray-700 dark:text-gray-300 hover:text-[#fbbd06] transition-colors" />
+          {cartCount > 0 && <span className="absolute -top-2 -right-2 bg-[#fbbd06] text-[#0b2c4d] font-bold text-[10px] w-4 h-4 flex items-center justify-center rounded-full">{cartCount}</span>}
+        </div>
+        
+        {state.currentUser ? (
+          <div className="flex items-center gap-3 ml-2">
+            <div 
+              className="flex items-center gap-1 cursor-pointer bg-gray-100 dark:bg-slate-800 px-3 py-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+              onClick={() => setView(state.currentUser.role === 'admin' ? 'admin' : 'profile')}
+            >
+              <User className="w-4 h-4 text-[#0b2c4d] dark:text-blue-400" />
+              <span className="text-sm font-medium text-[#0b2c4d] dark:text-blue-400 hidden sm:block">
+                {state.currentUser.name.split(' ')[0]}
+              </span>
+            </div>
+            <LogOut className="w-5 h-5 text-red-500 cursor-pointer hover:text-red-600" onClick={() => { logout(); setView('home'); }} />
+          </div>
+        ) : (
+          <User className="w-5 h-5 text-gray-700 dark:text-gray-300 cursor-pointer hover:text-[#fbbd06] ml-2" onClick={() => setView('login')} />
+        )}
+      </div>
+    </nav>
+  );
+};
+
+const Hero = () => {
+  const [currentImg, setCurrentImg] = useState(0);
+  const heroImages = [
+    "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&q=80&w=800",
+    "https://images.unsplash.com/photo-1597740985671-2a8a3b80502e?auto=format&fit=crop&q=80&w=800",
+    "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&q=80&w=800"
+  ];
+
+  const nextImg = () => setCurrentImg((prev) => (prev + 1) % heroImages.length);
+  const prevImg = () => setCurrentImg((prev) => (prev - 1 + heroImages.length) % heroImages.length);
+
+  return (
+    <div className="relative bg-[#112133] min-h-[500px] overflow-hidden">
+      <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(#2a3c53 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 py-16 md:py-24 flex flex-col md:flex-row items-center justify-between">
+        <AnimatedSection className="w-full md:w-1/2 pr-0 md:pr-8">
+          <div className="inline-flex items-center gap-2 border border-[#fbbd06] rounded-full px-4 py-1.5 mb-6">
+            <Award className="w-4 h-4 text-[#fbbd06]" />
+            <span className="text-[#fbbd06] text-sm">Trusted Repair & Accessories Store</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
+            Fast <span className="text-[#fbbd06]">Mobile &</span><br/>
+            <span className="text-[#fbbd06]">Electrical Repair</span><br/>
+            Near You
+          </h1>
+          <p className="text-gray-300 text-sm md:text-base leading-relaxed max-w-md mb-8">
+            Mobile screen repair, battery replacement, AC & cooler repair, and original mobile accessories — all available in one place.
+          </p>
+          <div className="flex items-center gap-4">
+            <button className="bg-[#fbbd06] hover:bg-yellow-500 text-[#112133] font-semibold px-6 py-2.5 rounded-lg flex items-center gap-2 transition">
+              Shop Now <ArrowRight className="w-4 h-4" />
+            </button>
+            <button className="border border-gray-500 hover:border-[#fbbd06] text-white px-6 py-2.5 rounded-lg flex items-center gap-2 transition">
+              Chat Us 
+              <span className="bg-green-500 p-1 rounded-full"><Phone className="w-3 h-3 text-white" /></span>
+            </button>
+          </div>
+        </AnimatedSection>
+        <AnimatedSection className="w-full md:w-1/2 mt-12 md:mt-0 relative flex justify-end">
+          <div className="relative w-full max-w-lg h-[400px] rounded-lg shadow-2xl overflow-hidden group">
+            <img 
+              src={heroImages[currentImg]} 
+              alt="Repair service" 
+              className="w-full h-full object-cover transition-transform duration-500"
+            />
+            <button onClick={prevImg} className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition">
+              <ChevronLeft className="w-5 h-5 text-gray-800" />
+            </button>
+            <button onClick={nextImg} className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition">
+              <ArrowRight className="w-5 h-5 text-gray-800" />
+            </button>
+          </div>
+        </AnimatedSection>
+      </div>
+    </div>
+  );
+};
+
+const SectionHeader = ({ title, actionText, onActionClick }) => (
+  <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-6">
+    <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+    {actionText && (
+      <button onClick={onActionClick} className="w-max border border-gray-300 rounded-md px-4 py-1.5 text-sm font-medium text-gray-700 flex items-center gap-2 hover:bg-gray-50">
+        {actionText} <span className="bg-[#fbbd06] rounded-full p-0.5"><ArrowRight className="w-3 h-3 text-white" /></span>
+      </button>
+    )}
+  </div>
+);
+
+const Categories = () => {
+  const categories = [
+    { name: 'Mobile Repair', img: 'https://images.unsplash.com/photo-1597740985671-2a8a3b80502e?auto=format&fit=crop&q=80&w=200' },
+    { name: 'Mobile Accessories', img: 'https://images.unsplash.com/photo-1601524909162-ae8725290836?auto=format&fit=crop&q=80&w=200' },
+    { name: 'Cooler Repair', img: 'https://images.unsplash.com/photo-1618625983796-0ab212390f77?auto=format&fit=crop&q=80&w=200' },
+    { name: 'Electrical Repair', img: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&q=80&w=200' },
+    { name: 'AC Repair', img: 'https://images.unsplash.com/photo-1585338107529-13afc5f02586?auto=format&fit=crop&q=80&w=200' },
+  ];
+
+  return (
+    <AnimatedSection className="py-16 bg-white text-center">
+      <h2 className="text-3xl font-bold text-gray-900 mb-2">Shop by Category</h2>
+      <p className="text-gray-500 mb-10">Everything you need to make your brand stand out</p>
+      <div className="flex flex-wrap justify-center gap-8 px-6 max-w-6xl mx-auto">
+        {categories.map((cat, idx) => (
+          <div key={idx} className="flex flex-col items-center gap-4 cursor-pointer group">
+            <div className="w-40 h-40 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center transition transform group-hover:scale-105">
+              <img src={cat.img} alt={cat.name} className="w-full h-full object-cover" />
+            </div>
+            <span className="text-gray-800 font-medium">{cat.name}</span>
+          </div>
+        ))}
+      </div>
+    </AnimatedSection>
+  );
+};
+
+const ServicesGrid = ({ title, actionText, items, onActionClick }) => (
+  <AnimatedSection className="py-10 px-6 md:px-12 max-w-7xl mx-auto">
+    <SectionHeader title={title} actionText={actionText} onActionClick={onActionClick} />
+    <div className={`grid grid-cols-2 md:grid-cols-3 ${items.length === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-5'} gap-4 md:gap-6`}>
+      {items.map((item, idx) => (
+        <div key={idx} className="group cursor-pointer">
+          <div className="h-32 md:h-48 rounded-xl overflow-hidden mb-3 bg-gray-100">
+            <img src={item.img} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+          </div>
+          <h3 className="text-xs md:text-sm font-medium text-gray-800">{item.name}</h3>
+        </div>
+      ))}
+    </div>
+  </AnimatedSection>
+);
+
+const PromoBanner = () => (
+  <AnimatedSection className="bg-[#0b2c4d] py-10 mt-20 md:mt-0 text-center">
+    <h2 className="text-[#fbbd06] text-3xl font-bold mb-2">Special Offer Today</h2>
+    <p className="text-white text-xl">Get Free Delivery on Orders <span className="text-[#fbbd06] font-bold">Above ₹500</span></p>
+  </AnimatedSection>
+);
+
+const Testimonials = () => {
+  return (
+    <AnimatedSection className="py-16 px-6 md:px-12 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center mb-8">
+        <h2 className="text-2xl font-bold text-gray-900">What Our Customers Say</h2>
+        <div className="flex gap-2">
+          <button className="p-2 border border-gray-300 rounded-full hover:bg-gray-50">
+            <ChevronLeft className="w-5 h-5 text-gray-600" />
+          </button>
+          <button className="p-2 bg-[#0b2c4d] text-white rounded-full">
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+      <div className="grid md:grid-cols-2 gap-6">
+        {[1, 2].map((item) => (
+          <div key={item} className="border-2 border-[#0b2c4d] rounded-xl p-8 bg-white shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-3xl font-bold text-gray-900">4.9</span>
+              <div className="flex text-[#fbbd06]">
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+              </div>
+            </div>
+            <p className="text-gray-800 text-lg mb-6 leading-relaxed">
+              Very fast mobile repair service. Good quality accessories.
+            </p>
+            <div className="flex items-center gap-4">
+              <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150" alt="User" className="w-12 h-12 rounded-full object-cover bg-gray-200" />
+              <div>
+                <h4 className="font-bold text-gray-900">Bablu Kumar</h4>
+                <p className="text-sm text-gray-500">Village: Inarvabhar</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </AnimatedSection>
+  );
+};
+
+const ContactSection = () => {
+  return (
+    <AnimatedSection className="bg-[#eef2f6] py-16 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-96 h-96 border border-blue-200 rounded-full translate-x-1/2 -translate-y-1/2 opacity-50"></div>
+      <div className="absolute bottom-0 left-0 w-64 h-64 border border-blue-200 rounded-full -translate-x-1/2 translate-y-1/2 opacity-50"></div>
+      <div className="max-w-6xl mx-auto px-6 relative z-10">
+        <h2 className="text-3xl font-bold text-center text-gray-900 mb-10">Visit Our Shop</h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="bg-[#dce3e9] rounded-2xl p-8 md:p-10">
+            <h3 className="text-xl font-bold text-gray-900 mb-8">Talk to Our Team</h3>
+            <div className="flex flex-col gap-8">
+              <div className="flex items-start gap-4">
+                <div className="bg-[#0b2c4d] p-3 rounded-full shrink-0"><Phone className="w-5 h-5 text-white" /></div>
+                <div><p className="text-sm text-gray-500 mb-1">Call</p><p className="font-bold text-gray-900">+91 9508710026</p></div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="bg-[#0b2c4d] p-3 rounded-full shrink-0"><Mail className="w-5 h-5 text-white" /></div>
+                <div><p className="text-sm text-gray-500 mb-1">Email</p><p className="font-bold text-gray-900">sales@gmail.com</p></div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="bg-[#0b2c4d] p-3 rounded-full shrink-0"><MapPin className="w-5 h-5 text-white" /></div>
+                <div><p className="text-sm text-gray-500 mb-1">Find Us</p><p className="font-bold text-gray-900">Vill :- Inarvabhar......</p></div>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-10 ml-16">
+              <a href="#" className="bg-[#0b2c4d] p-2 rounded-md"><Facebook className="w-5 h-5 text-white" /></a>
+              <a href="#" className="bg-[#0b2c4d] p-2 rounded-md"><Instagram className="w-5 h-5 text-white" /></a>
+              <a href="#" className="bg-[#0b2c4d] p-2 rounded-md"><div className="w-5 h-5 text-white font-bold text-center leading-none flex items-center justify-center">X</div></a>
+              <a href="#" className="bg-[#0b2c4d] p-2 rounded-md"><Linkedin className="w-5 h-5 text-white" /></a>
+            </div>
+          </div>
+          <div className="bg-[#dce3e9] rounded-2xl p-8 md:p-10">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">Get In Touch With WIX</h3>
+            <form className="flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <input type="text" placeholder="Your Name" className="bg-transparent border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#0b2c4d]" />
+                <input type="text" placeholder="Write Your number" className="bg-transparent border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#0b2c4d]" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <input type="text" placeholder="Location" className="bg-transparent border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#0b2c4d]" />
+                <div className="relative">
+                  <select className="w-full bg-transparent border border-gray-300 rounded-lg px-4 py-3 text-sm appearance-none focus:outline-none focus:border-[#0b2c4d] text-gray-700">
+                    <option value="">Device Type</option>
+                    <option value="mobile">Mobile</option>
+                    <option value="appliance">Appliance</option>
+                  </select>
+                  <ChevronRight className="absolute right-4 top-1/2 transform -translate-y-1/2 rotate-90 w-4 h-4 text-gray-500 pointer-events-none" />
+                </div>
+              </div>
+              <textarea placeholder="Problem Description" rows={4} className="bg-transparent border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#0b2c4d] resize-none"></textarea>
+              <button type="button" className="bg-[#0b2c4d] text-white w-max px-6 py-3 rounded-full flex items-center gap-3 mt-2 hover:bg-[#112133] transition">
+                Send Message
+                <span className="bg-white rounded-full p-1"><ArrowRight className="w-4 h-4 text-[#0b2c4d]" /></span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </AnimatedSection>
+  );
+};
+
+const Products = () => {
+  const { state, addToCart, toggleWishlist, searchQuery, updateCartQty, addReview } = useContext(AppContext);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewRating, setReviewRating] = useState(5);
+  
+  const filteredProducts = state.products.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleAddReview = (e) => {
+    e.preventDefault();
+    if(!state.currentUser) return alert('Please login to review');
+    const newReview = { user: state.currentUser.name, rating: reviewRating, comment: reviewText };
+    addReview(selectedProduct.id, newReview);
+    setReviewText('');
+    setSelectedProduct({...selectedProduct, reviews: [...(selectedProduct.reviews||[]), newReview]});
+  };
+
+  return (
+    <AnimatedSection className="py-10 px-6 md:px-12 max-w-7xl mx-auto relative">
+      <SectionHeader title="Popular Mobile Accessories" actionText="View All Accessories" />
+      {filteredProducts.length === 0 ? (
+        <p className="text-gray-500 text-center py-10">No products found.</p>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {filteredProducts.map((p, idx) => {
+            const cartItem = state.cart.find(i => i.id === p.id);
+            return (
+              <div key={idx} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition border border-gray-100 relative group flex flex-col">
+                {p.discount > 0 && (
+                  <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
+                    {p.discount}% OFF
+                  </span>
+                )}
+                <button 
+                  onClick={() => toggleWishlist(p)}
+                  className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow z-10 opacity-0 group-hover:opacity-100 transition"
+                >
+                  <Heart className={`w-4 h-4 ${state.wishlist.find(w => w.id === p.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
+                </button>
+                
+                <div className="h-40 bg-gray-50 p-2 relative cursor-pointer" onClick={() => setSelectedProduct(p)}>
+                  <img src={p.img} alt={p.name} className="w-full h-full object-cover rounded-lg" />
+                </div>
+                <div className="p-4 flex flex-col flex-1">
+                  <h3 className="text-sm font-medium text-gray-800 line-clamp-1 cursor-pointer hover:text-[#fbbd06]" onClick={() => setSelectedProduct(p)}>{p.name}</h3>
+                  <div className="flex items-center gap-1 mt-1 cursor-pointer" onClick={() => setSelectedProduct(p)}>
+                    <Star className="w-3 h-3 fill-[#fbbd06] text-[#fbbd06]" />
+                    <span className="text-xs text-gray-500 hover:underline">{(p.reviews?.length || 0)} Reviews</span>
+                  </div>
+                  <div className="mt-auto pt-3 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <span className="font-bold text-gray-900 text-sm md:text-base">₹{p.price}</span>
+                      {p.originalPrice > p.price && (
+                        <span className="text-xs text-gray-400 line-through ml-1">₹{p.originalPrice}</span>
+                      )}
+                    </div>
+                    {cartItem ? (
+                      <div className="flex items-center gap-1 sm:gap-2 bg-gray-50 border border-[#fbbd06] rounded-md px-1 py-0.5 whitespace-nowrap">
+                        <button onClick={() => updateCartQty(p.id, -1)} className="px-1 sm:px-2 text-gray-600 font-bold hover:text-black">-</button>
+                        <span className="text-xs font-bold w-3 sm:w-4 text-center">{cartItem.qty}</span>
+                        <button onClick={() => updateCartQty(p.id, 1)} className="px-1 sm:px-2 text-gray-600 font-bold hover:text-black" disabled={cartItem.qty >= (p.stock || 0)}>+</button>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => addToCart(p)}
+                        disabled={(p.stock || 0) <= 0}
+                        className={`border px-2 py-1 rounded-md text-xs flex items-center gap-1 transition whitespace-nowrap ${p.stock > 0 ? 'border-[#fbbd06] text-gray-700 hover:bg-[#fbbd06] hover:text-white' : 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'}`}
+                      >
+                        {p.stock > 0 ? <>Add <ShoppingCart className="w-3 h-3 hidden sm:block" /></> : 'Out of Stock'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Product Reviews Modal */}
+      {selectedProduct && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 relative">
+            <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 text-gray-500 hover:text-black font-bold text-xl">&times;</button>
+            <div className="flex flex-col md:flex-row gap-6 mb-8 border-b pb-6">
+              <img src={selectedProduct.img} className="w-full md:w-40 h-40 object-cover rounded-xl bg-gray-50" />
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold">{selectedProduct.name}</h2>
+                <p className="text-xl font-bold text-[#0b2c4d] mt-2">₹{selectedProduct.price}</p>
+                <p className="text-sm text-gray-500 mt-2">Stock: {selectedProduct.stock > 0 ? <span className="text-green-600 font-bold">{selectedProduct.stock} Available</span> : <span className="text-red-500">Out of stock</span>}</p>
+              </div>
+            </div>
+            
+            <h3 className="font-bold text-lg mb-4">Customer Reviews</h3>
+            <div className="space-y-4 mb-8">
+              {(!selectedProduct.reviews || selectedProduct.reviews.length === 0) ? (
+                <p className="text-gray-500 text-sm">No reviews yet. Be the first to review!</p>
+              ) : (
+                selectedProduct.reviews.map((r, i) => (
+                  <div key={i} className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="font-bold text-sm">{r.user}</span>
+                      <div className="flex">
+                        {[...Array(5)].map((_, idx) => <Star key={idx} className={`w-3 h-3 ${idx < r.rating ? 'fill-[#fbbd06] text-[#fbbd06]' : 'text-gray-300'}`} />)}
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-700">{r.comment}</p>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-xl border">
+              <h4 className="font-bold mb-3">Write a Review</h4>
+              <form onSubmit={handleAddReview} className="flex flex-col gap-3">
+                <select value={reviewRating} onChange={e=>setReviewRating(Number(e.target.value))} className="border p-2 rounded text-sm max-w-[150px]">
+                  <option value="5">5 Stars - Excellent</option>
+                  <option value="4">4 Stars - Good</option>
+                  <option value="3">3 Stars - Average</option>
+                  <option value="2">2 Stars - Poor</option>
+                  <option value="1">1 Star - Terrible</option>
+                </select>
+                <textarea required placeholder="Your review..." value={reviewText} onChange={e=>setReviewText(e.target.value)} className="border p-2 rounded text-sm w-full" rows="3"></textarea>
+                <button type="submit" className="bg-[#0b2c4d] text-white px-4 py-2 rounded text-sm font-bold w-max hover:bg-[#112133]">Submit Review</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </AnimatedSection>
+  );
+};
+
+// --- AUTHENTICATION VIEWS ---
+const AuthView = ({ setView, mode }) => {
+  const { register, login } = useContext(AppContext);
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', phone: '' });
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (mode === 'register') {
+      const res = register(formData);
+      if (res.error) setError(res.error);
+      else setView('profile');
+    } else {
+      const res = login(formData.email, formData.password);
+      if (res.error) setError(res.error);
+      else setView(res.role === 'admin' ? 'admin' : 'home');
+    }
+  };
+
+  return (
+    <div className="min-h-[70vh] flex items-center justify-center bg-gray-50 py-12 px-4">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8">
+        <h2 className="text-3xl font-bold text-center text-[#0b2c4d] mb-6">
+          {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+        </h2>
+        {error && <div className="bg-red-50 text-red-500 p-3 rounded-md text-sm mb-4">{error}</div>}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {mode === 'register' && (
+            <>
+              <input required type="text" placeholder="Full Name" className="border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#fbbd06]" 
+                onChange={e => setFormData({...formData, name: e.target.value})} />
+              <input required type="tel" placeholder="Mobile Number" className="border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#fbbd06]"
+                onChange={e => setFormData({...formData, phone: e.target.value})} />
+            </>
+          )}
+          <input required type="email" placeholder="Email Address" className="border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#fbbd06]"
+            onChange={e => setFormData({...formData, email: e.target.value})} />
+          <input required type="password" placeholder="Password" className="border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#fbbd06]"
+            onChange={e => setFormData({...formData, password: e.target.value})} />
+          
+          <button type="submit" className="bg-[#0b2c4d] text-white py-3 rounded-lg font-bold hover:bg-[#112133] transition mt-2">
+            {mode === 'login' ? 'Log In' : 'Sign Up'}
+          </button>
+        </form>
+        <p className="text-center text-sm text-gray-500 mt-6">
+          {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
+          <span className="text-[#fbbd06] font-bold cursor-pointer hover:underline" onClick={() => setView(mode === 'login' ? 'register' : 'login')}>
+            {mode === 'login' ? 'Register here' : 'Login here'}
+          </span>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+// --- CART & CHECKOUT ---
+const CartView = ({ setView }) => {
+  const { state, updateCartQty, removeFromCart } = useContext(AppContext);
+  const total = state.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+  return (
+    <div className="max-w-5xl mx-auto py-12 px-6 min-h-[60vh]">
+      <h2 className="text-3xl font-bold text-[#0b2c4d] mb-8">Shopping Cart</h2>
+      {state.cart.length === 0 ? (
+        <div className="text-center py-12 bg-gray-50 rounded-xl">
+          <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-500 mb-4">Your cart is empty</p>
+          <button onClick={() => setView('home')} className="bg-[#fbbd06] px-6 py-2 rounded-lg font-medium">Continue Shopping</button>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="md:col-span-2 flex flex-col gap-4">
+            {state.cart.map(item => (
+              <div key={item.id} className="flex items-center gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                <img src={item.img} alt={item.name} className="w-20 h-20 object-cover rounded-md" />
+                <div className="flex-1">
+                  <h3 className="font-bold text-gray-900">{item.name}</h3>
+                  <p className="text-[#0b2c4d] font-bold">₹{item.price}</p>
+                </div>
+                <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-2 py-1">
+                  <button onClick={() => updateCartQty(item.id, -1)} className="p-1 hover:text-[#fbbd06]">-</button>
+                  <span className="w-4 text-center text-sm font-medium">{item.qty}</span>
+                  <button onClick={() => updateCartQty(item.id, 1)} className="p-1 hover:text-[#fbbd06]">+</button>
+                </div>
+                <button onClick={() => removeFromCart(item.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-full ml-2">
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 h-fit">
+            <h3 className="text-xl font-bold mb-4 border-b pb-4">Order Summary</h3>
+            <div className="flex justify-between mb-2"><span className="text-gray-600">Subtotal</span><span>₹{total}</span></div>
+            <div className="flex justify-between mb-4"><span className="text-gray-600">Delivery</span><span className="text-green-600 font-medium">Free</span></div>
+            <div className="flex justify-between font-bold text-lg border-t pt-4 mb-6"><span>Total</span><span>₹{total}</span></div>
+            <button 
+              onClick={() => {
+                if(!state.currentUser) { alert('Please login to checkout'); setView('login'); }
+                else setView('checkout');
+              }}
+              className="w-full bg-[#0b2c4d] text-white py-3 rounded-lg font-bold hover:bg-[#112133] transition"
+            >
+              Proceed to Checkout
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const CheckoutView = ({ setView }) => {
+  const { state, placeOrder } = useContext(AppContext);
+  const [step, setStep] = useState(1);
+  const [selectedAddress, setSelectedAddress] = useState(state.currentUser?.addresses?.[0] || null);
+  const [paymentMethod, setPaymentMethod] = useState('card');
+  const total = state.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+  const handlePlaceOrder = () => {
+    if (!selectedAddress) return alert("Please select or add an address in your profile.");
+    placeOrder(selectedAddress, paymentMethod, total);
+    setStep(3); // Success step
+    setTimeout(() => setView('profile'), 3000);
+  };
+
+  if (step === 3) return (
+    <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
+      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+        <Check className="w-10 h-10 text-green-500" />
+      </div>
+      <h2 className="text-3xl font-bold text-[#0b2c4d] mb-2">Order Placed Successfully!</h2>
+      <p className="text-gray-500">Redirecting to your orders...</p>
+    </div>
+  );
+
+  return (
+    <div className="max-w-4xl mx-auto py-12 px-6">
+      <h2 className="text-2xl font-bold mb-8">Checkout</h2>
+      <div className="grid md:grid-cols-2 gap-10">
+        <div>
+          <h3 className="text-lg font-bold mb-4">1. Delivery Address</h3>
+          {(!state.currentUser?.addresses || state.currentUser.addresses.length === 0) ? (
+            <div className="p-4 bg-yellow-50 text-yellow-800 rounded-lg text-sm mb-6">
+              You don't have any saved addresses. Please add one in your profile first.
+              <button onClick={() => setView('profile')} className="ml-2 underline font-bold">Go to Profile</button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3 mb-8">
+              {state.currentUser.addresses.map((addr, i) => (
+                <div key={i} onClick={() => setSelectedAddress(addr)} className={`p-4 border rounded-xl cursor-pointer ${selectedAddress === addr ? 'border-[#fbbd06] bg-yellow-50' : 'border-gray-200'}`}>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-bold text-sm">{addr.type} <span className="font-normal text-gray-500 ml-2">{addr.phone}</span></p>
+                      <p className="text-gray-600 text-sm mt-1">{addr.street}, {addr.city}, {addr.zip}</p>
+                    </div>
+                    {selectedAddress === addr && <CheckCircle2 className="w-5 h-5 text-[#fbbd06]" />}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <h3 className="text-lg font-bold mb-4">2. Payment Method</h3>
+          <div className="flex flex-col gap-3">
+            <label className={`p-4 border rounded-xl cursor-pointer flex items-center gap-3 ${paymentMethod === 'card' ? 'border-[#0b2c4d] bg-blue-50' : ''}`}>
+              <input type="radio" name="payment" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} className="w-4 h-4 text-[#0b2c4d]" />
+              <CreditCard className="w-5 h-5 text-gray-600" />
+              <span className="font-medium">Credit / Debit Card</span>
+            </label>
+            <label className={`p-4 border rounded-xl cursor-pointer flex items-center gap-3 ${paymentMethod === 'upi' ? 'border-[#0b2c4d] bg-blue-50' : ''}`}>
+              <input type="radio" name="payment" checked={paymentMethod === 'upi'} onChange={() => setPaymentMethod('upi')} className="w-4 h-4 text-[#0b2c4d]" />
+              <MonitorSmartphone className="w-5 h-5 text-gray-600" />
+              <span className="font-medium">UPI / QR</span>
+            </label>
+          </div>
+        </div>
+
+        <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 h-fit">
+          <h3 className="text-xl font-bold mb-4 border-b pb-4">Payable Amount</h3>
+          <div className="flex justify-between font-bold text-2xl mb-8"><span>Total</span><span>₹{total}</span></div>
+          <button 
+            disabled={!selectedAddress}
+            onClick={handlePlaceOrder}
+            className="w-full bg-[#fbbd06] text-[#0b2c4d] py-3 rounded-lg font-bold text-lg hover:bg-yellow-500 transition disabled:opacity-50"
+          >
+            Pay ₹{total} & Place Order
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- USER PROFILE & DASHBOARD ---
+const UserProfileView = () => {
+  const { state, updateUserProfile, addAddress, deleteAddress } = useContext(AppContext);
+  const [activeTab, setActiveTab] = useState('profile');
+  const user = state.currentUser;
+
+  const handlePrintInvoice = (order) => {
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html><head><title>Invoice #${order.id}</title><style>body{font-family:sans-serif;padding:40px;line-height:1.6}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #ddd;padding:12px;text-align:left}</style></head>
+      <body>
+        <h2>FIXKARO Invoice</h2><p>Order ID: ${order.id}<br/>Date: ${order.date}<br/>Status: ${order.status}</p>
+        <hr/>
+        <table><tr><th>Item</th><th>Qty</th><th>Price</th></tr>
+        ${order.items.map(i => `<tr><td>${i.name}</td><td>${i.qty}</td><td>Rs. ${i.price}</td></tr>`).join('')}
+        <tr><td colspan="2" style="text-align:right;font-weight:bold">Total</td><td>Rs. ${order.total}</td></tr></table>
+        <p style="margin-top:40px">Thank you for shopping with us!</p>
+      </body></html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  const ProfileTab = () => {
+    const [edit, setEdit] = useState(false);
+    const [data, setData] = useState({ name: user.name, phone: user.phone });
+    return (
+      <div className="bg-white p-6 rounded-xl border">
+        <h3 className="font-bold text-lg mb-4 flex justify-between">Personal Info <button onClick={() => {if(edit) updateUserProfile(data); setEdit(!edit)}} className="text-sm text-blue-600 flex items-center gap-1">{edit ? <Check className="w-4 h-4"/> : <Edit className="w-4 h-4"/>} {edit ? 'Save' : 'Edit'}</button></h3>
+        <div className="grid gap-4 max-w-sm">
+          <div><label className="text-xs text-gray-500">Full Name</label>{edit ? <input className="w-full border p-2 rounded" value={data.name} onChange={e=>setData({...data, name: e.target.value})}/> : <p className="font-medium">{user.name}</p>}</div>
+          <div><label className="text-xs text-gray-500">Email Address</label><p className="font-medium text-gray-600">{user.email} (Cannot change)</p></div>
+          <div><label className="text-xs text-gray-500">Mobile Number</label>{edit ? <input className="w-full border p-2 rounded" value={data.phone} onChange={e=>setData({...data, phone: e.target.value})}/> : <p className="font-medium">{user.phone || 'Not added'}</p>}</div>
+        </div>
+      </div>
+    );
+  };
+
+  const AddressTab = () => {
+    const [showForm, setShowForm] = useState(false);
+    const [form, setForm] = useState({ type: 'Home', street: '', city: '', zip: '', phone: '' });
+    return (
+      <div className="bg-white p-6 rounded-xl border">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="font-bold text-lg">My Addresses</h3>
+          <button onClick={() => setShowForm(!showForm)} className="bg-[#0b2c4d] text-white px-3 py-1.5 rounded text-sm flex items-center gap-1"><Plus className="w-4 h-4"/> Add New</button>
+        </div>
+        {showForm && (
+          <div className="bg-gray-50 p-4 rounded-lg mb-6 grid gap-4 grid-cols-2">
+            <input placeholder="Label (e.g. Home, Office)" className="border p-2 rounded" onChange={e=>setForm({...form, type: e.target.value})} />
+            <input placeholder="Phone Number" className="border p-2 rounded" onChange={e=>setForm({...form, phone: e.target.value})} />
+            <input placeholder="Street Address" className="border p-2 rounded col-span-2" onChange={e=>setForm({...form, street: e.target.value})} />
+            <input placeholder="City" className="border p-2 rounded" onChange={e=>setForm({...form, city: e.target.value})} />
+            <input placeholder="PIN Code" className="border p-2 rounded" onChange={e=>setForm({...form, zip: e.target.value})} />
+            <button onClick={() => {addAddress(form); setShowForm(false)}} className="bg-green-600 text-white p-2 rounded col-span-2 font-bold">Save Address</button>
+          </div>
+        )}
+        <div className="grid gap-4 md:grid-cols-2">
+          {user.addresses?.map((addr, i) => (
+            <div key={i} className="border p-4 rounded-lg relative">
+              <button onClick={()=>deleteAddress(i)} className="absolute top-4 right-4 text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4"/></button>
+              <span className="bg-gray-200 text-xs px-2 py-1 rounded font-bold">{addr.type}</span>
+              <p className="mt-2 text-sm text-gray-600">{addr.street}<br/>{addr.city} - {addr.zip}<br/>Phone: {addr.phone}</p>
+            </div>
+          ))}
+          {(!user.addresses || user.addresses.length === 0) && !showForm && <p className="text-gray-500 text-sm">No addresses found.</p>}
+        </div>
+      </div>
+    );
+  };
+
+  const OrdersTab = () => {
+    const orders = state.orders.filter(o => o.userId === user.id);
+    return (
+      <div className="bg-white p-6 rounded-xl border">
+        <h3 className="font-bold text-lg mb-6">Order History</h3>
+        {orders.length === 0 ? <p className="text-gray-500">No orders placed yet.</p> : (
+          <div className="flex flex-col gap-4">
+            {orders.slice().reverse().map(order => (
+              <div key={order.id} className="border border-gray-100 p-4 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Package className="w-5 h-5 text-[#0b2c4d]" />
+                    <span className="font-bold">Order #{order.id}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${order.status==='Delivered'?'bg-green-100 text-green-700': order.status==='Processing'?'bg-yellow-100 text-yellow-700': 'bg-blue-100 text-blue-700'}`}>{order.status}</span>
+                  </div>
+                  <p className="text-sm text-gray-500">Placed on: {order.date}</p>
+                  <p className="text-sm mt-2">{order.items.length} items • ₹{order.total} • via {order.paymentMethod.toUpperCase()}</p>
+                </div>
+                <button onClick={() => handlePrintInvoice(order)} className="flex items-center gap-2 border border-gray-300 bg-white px-3 py-1.5 rounded text-sm hover:bg-gray-100"><FileText className="w-4 h-4"/> Download Invoice</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const ServicesTab = () => {
+    const services = state.serviceRequests.filter(s => s.userId === user.id);
+    return (
+      <div className="bg-white p-6 rounded-xl border">
+        <h3 className="font-bold text-lg mb-6">My Booked Services</h3>
+        {services.length === 0 ? <p className="text-gray-500">No services booked yet.</p> : (
+          <div className="flex flex-col gap-4">
+            {services.slice().reverse().map(srv => (
+              <div key={srv.id} className="border border-gray-100 p-4 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Wrench className="w-5 h-5 text-[#0b2c4d]" />
+                    <span className="font-bold">Booking #{srv.id}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${srv.status==='Completed'?'bg-green-100 text-green-700': srv.status==='Approved'?'bg-blue-100 text-blue-700': srv.status==='Cancelled'?'bg-red-100 text-red-700': 'bg-yellow-100 text-yellow-700'}`}>{srv.status}</span>
+                  </div>
+                  <p className="text-sm font-medium mt-1">{srv.type} - {srv.device}</p>
+                  <p className="text-sm text-gray-500 mt-1">Issue: {srv.issue}</p>
+                  <div className="flex items-center gap-4 mt-2">
+                    <span className="text-xs flex items-center gap-1"><Calendar className="w-3 h-3"/> {srv.date}</span>
+                    <span className="text-xs flex items-center gap-1"><MapPin className="w-3 h-3"/> {srv.address?.type || 'Address'}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto py-10 px-6 min-h-[70vh] flex flex-col md:flex-row gap-8">
+      <div className="w-full md:w-64 shrink-0">
+        <div className="bg-[#0b2c4d] text-white p-6 rounded-xl mb-4">
+          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-2xl font-bold mb-4">{user.name[0]}</div>
+          <h2 className="font-bold text-xl">{user.name}</h2>
+          <p className="text-sm opacity-80">{user.email}</p>
+        </div>
+        <div className="flex flex-col gap-2">
+          {['profile', 'addresses', 'orders', 'services'].map(tab => (
+            <button key={tab} onClick={() => setActiveTab(tab)} className={`text-left px-4 py-3 rounded-lg font-medium capitalize transition ${activeTab === tab ? 'bg-[#fbbd06] text-[#0b2c4d]' : 'hover:bg-gray-100 text-gray-700'}`}>
+              My {tab}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex-1">
+        {activeTab === 'profile' && <ProfileTab />}
+        {activeTab === 'addresses' && <AddressTab />}
+        {activeTab === 'orders' && <OrdersTab />}
+        {activeTab === 'services' && <ServicesTab />}
+      </div>
+    </div>
+  );
+};
+
+const AdminDashboard = () => {
+  const { state, updateOrderStatus, addProduct, deleteProduct, updateProductDiscount, updateProductStock, updateServiceStatus } = useContext(AppContext);
+  const [activeTab, setActiveTab] = useState('orders');
+
+  const OrdersTab = () => (
+    <div className="bg-white p-6 rounded-xl border overflow-x-auto">
+      <h3 className="font-bold text-lg mb-6">Manage Orders</h3>
+      <table className="w-full text-sm text-left">
+        <thead className="bg-gray-50 text-gray-600">
+          <tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          {state.orders.map(order => (
+            <tr key={order.id} className="border-b">
+              <td className="py-3">#{order.id}</td>
+              <td>{order.userId}</td>
+              <td>{order.date}</td>
+              <td className="font-bold">₹{order.total}</td>
+              <td>
+                <span className={`px-2 py-1 rounded-full text-xs ${order.status==='Delivered'?'bg-green-100 text-green-700': 'bg-yellow-100 text-yellow-700'}`}>{order.status}</span>
+              </td>
+              <td>
+                <select 
+                  value={order.status} 
+                  onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                  className="border rounded px-2 py-1 text-xs"
+                >
+                  <option value="Processing">Processing</option>
+                  <option value="Shipped">Shipped</option>
+                  <option value="Delivered">Delivered</option>
+                </select>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  const ProductsTab = () => {
+    const [form, setForm] = useState({ name: '', price: '', img: '', stock: '' });
+    return (
+      <div className="bg-white p-6 rounded-xl border">
+        <h3 className="font-bold text-lg mb-4">Add New Product</h3>
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <input placeholder="Product Name" className="border p-2 rounded w-full md:flex-1" value={form.name} onChange={e=>setForm({...form, name: e.target.value})} />
+          <input type="number" placeholder="Price (₹)" className="border p-2 rounded w-full md:w-24" value={form.price} onChange={e=>setForm({...form, price: e.target.value})} />
+          <input type="number" placeholder="Stock" className="border p-2 rounded w-full md:w-24" value={form.stock} onChange={e=>setForm({...form, stock: e.target.value})} />
+          <input placeholder="Image URL" className="border p-2 rounded w-full md:flex-1" value={form.img} onChange={e=>setForm({...form, img: e.target.value})} />
+          <button onClick={() => { addProduct(form); setForm({name:'', price:'', img:'', stock: ''}); }} className="bg-[#0b2c4d] text-white px-4 py-3 md:py-0 rounded font-bold flex items-center justify-center gap-1 w-full md:w-auto"><Plus className="w-4 h-4"/> Add</button>
+        </div>
+        <h3 className="font-bold text-lg mb-4">Product Catalog & Inventory</h3>
+        <div className="grid gap-3">
+          {state.products.map(p => (
+            <div key={p.id} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50 flex-wrap gap-4">
+              <div className="flex items-center gap-4 min-w-[200px]">
+                <img src={p.img} className="w-10 h-10 rounded object-cover" />
+                <div><p className="font-bold text-sm">{p.name}</p><p className="text-xs text-gray-500">₹{p.price}</p></div>
+              </div>
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">Stock Qty:</span>
+                  <input type="number" min="0" value={p.stock} onChange={(e) => updateProductStock(p.id, parseInt(e.target.value)||0)} className="w-16 border rounded px-2 py-1 text-sm" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">Discount %:</span>
+                  <input type="number" min="0" max="99" value={p.discount} onChange={(e) => updateProductDiscount(p.id, parseInt(e.target.value)||0)} className="w-16 border rounded px-2 py-1 text-sm" />
+                </div>
+                <button onClick={() => deleteProduct(p.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full"><Trash2 className="w-4 h-4"/></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const ServicesTab = () => (
+    <div className="bg-white p-6 rounded-xl border overflow-x-auto">
+      <h3 className="font-bold text-lg mb-6">Manage Service Requests</h3>
+      <table className="w-full text-sm text-left whitespace-nowrap md:whitespace-normal">
+        <thead className="bg-gray-50 text-gray-600">
+          <tr><th>Booking ID</th><th>Customer Info</th><th>Service Details</th><th>Date</th><th>Status</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          {state.serviceRequests.map(srv => {
+            const user = state.users.find(u => u.id === srv.userId);
+            return (
+              <tr key={srv.id} className="border-b">
+                <td className="py-3 font-medium">#{srv.id}</td>
+                <td>
+                  <p className="font-bold">{user?.name}</p>
+                  <p className="text-xs text-gray-500">{user?.phone}</p>
+                </td>
+                <td>
+                  <p className="font-medium text-[#0b2c4d]">{srv.type}</p>
+                  <p className="text-xs truncate max-w-[150px]">{srv.device} - {srv.issue}</p>
+                </td>
+                <td>{srv.date}</td>
+                <td>
+                  <span className={`px-2 py-1 rounded-full text-xs ${srv.status==='Completed'?'bg-green-100 text-green-700': srv.status==='Approved'?'bg-blue-100 text-blue-700': srv.status==='Cancelled'?'bg-red-100 text-red-700': 'bg-yellow-100 text-yellow-700'}`}>{srv.status}</span>
+                </td>
+                <td>
+                  <select 
+                    value={srv.status} 
+                    onChange={(e) => updateServiceStatus(srv.id, e.target.value)}
+                    className="border rounded px-2 py-1 text-xs"
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </td>
+              </tr>
+            );
+          })}
+          {state.serviceRequests.length === 0 && (
+            <tr><td colSpan="6" className="py-4 text-center text-gray-500">No service requests found.</td></tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  const CatalogTab = () => {
+    const { addCatalogService, deleteCatalogService } = useContext(AppContext);
+    const [form, setForm] = useState({ name: '', img: '', category: 'repair' });
+    
+    return (
+      <div className="bg-white p-6 rounded-xl border">
+        <h3 className="font-bold text-lg mb-4">Add New Service to Catalog</h3>
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <select className="border p-2 rounded w-full md:w-48" value={form.category} onChange={e=>setForm({...form, category: e.target.value})}>
+            <option value="repair">Mobile Repair</option>
+            <option value="appliance">Appliance Repair</option>
+          </select>
+          <input placeholder="Service Name" className="border p-2 rounded w-full md:flex-1" value={form.name} onChange={e=>setForm({...form, name: e.target.value})} />
+          <input placeholder="Image URL" className="border p-2 rounded w-full md:flex-1" value={form.img} onChange={e=>setForm({...form, img: e.target.value})} />
+          <button onClick={() => { addCatalogService(form); setForm({name:'', img:'', category: 'repair'}); }} className="bg-[#0b2c4d] text-white px-4 py-3 md:py-0 rounded font-bold flex items-center justify-center gap-1 w-full md:w-auto"><Plus className="w-4 h-4"/> Add</button>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          <div>
+            <h4 className="font-bold text-md mb-3 text-gray-700 border-b pb-2">Mobile Repair Catalog</h4>
+            <div className="flex flex-col gap-2">
+              {state.repairServices.map(s => (
+                <div key={s.id} className="flex items-center justify-between p-2 border rounded bg-gray-50">
+                  <div className="flex items-center gap-3"><img src={s.img} className="w-8 h-8 rounded object-cover" /><span className="text-sm font-medium">{s.name}</span></div>
+                  <button onClick={() => deleteCatalogService('repair', s.id)} className="text-red-500 p-1 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4"/></button>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h4 className="font-bold text-md mb-3 text-gray-700 border-b pb-2">Appliance Catalog</h4>
+            <div className="flex flex-col gap-2">
+              {state.applianceServices.map(s => (
+                <div key={s.id} className="flex items-center justify-between p-2 border rounded bg-gray-50">
+                  <div className="flex items-center gap-3"><img src={s.img} className="w-8 h-8 rounded object-cover" /><span className="text-sm font-medium">{s.name}</span></div>
+                  <button onClick={() => deleteCatalogService('appliance', s.id)} className="text-red-500 p-1 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4"/></button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const UsersTab = () => {
+    const { addUser, deleteUser } = useContext(AppContext);
+    const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', role: 'user' });
+
+    return (
+      <div className="bg-white p-6 rounded-xl border overflow-x-auto">
+        <h3 className="font-bold text-lg mb-4">Add New User</h3>
+        <div className="flex flex-wrap gap-3 mb-8 bg-gray-50 p-4 rounded-lg border">
+          <input placeholder="Name" className="border p-2 rounded flex-1 min-w-[150px] text-sm" value={form.name} onChange={e=>setForm({...form, name: e.target.value})} />
+          <input placeholder="Email" type="email" className="border p-2 rounded flex-1 min-w-[150px] text-sm" value={form.email} onChange={e=>setForm({...form, email: e.target.value})} />
+          <input placeholder="Phone" className="border p-2 rounded w-32 text-sm" value={form.phone} onChange={e=>setForm({...form, phone: e.target.value})} />
+          <input placeholder="Password" type="password" className="border p-2 rounded w-32 text-sm" value={form.password} onChange={e=>setForm({...form, password: e.target.value})} />
+          <select className="border p-2 rounded text-sm" value={form.role} onChange={e=>setForm({...form, role: e.target.value})}>
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+          <button onClick={() => { addUser(form); setForm({name:'', email:'', phone:'', password:'', role:'user'}); }} className="bg-[#0b2c4d] text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-1"><Plus className="w-4 h-4"/> Add</button>
+        </div>
+
+        <h3 className="font-bold text-lg mb-4">Registered Users</h3>
+        <table className="w-full text-sm text-left">
+          <thead className="bg-gray-50 text-gray-600 border-b">
+            <tr><th className="py-2 px-2">Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            {state.users.map((u, i) => (
+              <tr key={u.id || i} className="border-b">
+                <td className="py-3 px-2 font-medium">{u.name}</td>
+                <td>{u.email}</td>
+                <td>{u.phone || '-'}</td>
+                <td><span className={`text-xs px-2 py-1 rounded font-bold ${u.role==='admin'?'bg-purple-100 text-purple-700':'bg-gray-100'}`}>{u.role.toUpperCase()}</span></td>
+                <td>
+                  <button 
+                    onClick={() => deleteUser(u.id)} 
+                    disabled={u.id === state.currentUser.id}
+                    className="text-red-500 hover:bg-red-50 p-1.5 rounded disabled:opacity-30 disabled:hover:bg-transparent"
+                  >
+                    <Trash2 className="w-4 h-4"/>
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto py-10 px-6 min-h-[70vh]">
+      <div className="flex flex-col md:flex-row justify-between md:items-center mb-8 border-b pb-4 gap-4">
+        <div>
+          <h2 className="text-3xl font-bold text-[#0b2c4d]">Admin Control Panel</h2>
+          <p className="text-gray-500 mt-1">Manage store settings, orders, users, and catalog</p>
+        </div>
+      </div>
+      <div className="flex flex-col md:flex-row gap-8">
+        <div className="w-full md:w-56 flex md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0">
+          {['orders', 'products', 'services', 'catalog', 'users'].map(tab => (
+            <button key={tab} onClick={() => setActiveTab(tab)} className={`text-left px-4 py-3 rounded-lg font-medium capitalize shrink-0 transition ${activeTab === tab ? 'bg-[#0b2c4d] text-white' : 'hover:bg-gray-100 text-gray-700'}`}>
+              Manage {tab}
+            </button>
+          ))}
+        </div>
+        <div className="flex-1 overflow-x-hidden">
+          {activeTab === 'orders' && <OrdersTab />}
+          {activeTab === 'products' && <ProductsTab />}
+          {activeTab === 'services' && <ServicesTab />}
+          {activeTab === 'catalog' && <CatalogTab />}
+          {activeTab === 'users' && <UsersTab />}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- MISC DECORATIVE COMPONENTS ---
+const Features = () => (
+  <AnimatedSection className="py-16 overflow-hidden relative">
+    <div className="text-center mb-12 relative z-10"><h2 className="text-3xl font-bold text-gray-900 mb-2">Why Choose Our Service</h2><p className="text-gray-500">Everything you need to make your brand stand out</p></div>
+    <div className="max-w-5xl mx-auto relative h-[600px] flex items-center justify-center">
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="w-[600px] h-[600px] rounded-full border border-blue-50"></div><div className="absolute w-[450px] h-[450px] rounded-full border border-blue-100"></div><div className="absolute w-[300px] h-[300px] rounded-full border border-blue-200"></div>
+      </div>
+      <div className="w-64 h-80 md:w-80 md:h-[450px] rounded-2xl overflow-hidden z-10 relative shadow-xl">
+        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=600" alt="Customer service representative" className="w-full h-full object-cover"/>
+      </div>
+      <div className="hidden md:block">
+        <div className="absolute top-[15%] left-[5%] bg-white p-4 rounded-xl shadow-lg border border-gray-100 flex items-start gap-3 w-64 z-20"><Clock className="w-6 h-6 text-[#112133] mt-1" /><div><h4 className="font-bold text-gray-900">Same Day Repair</h4><p className="text-xs text-gray-500 mt-1">Fast and reliable repair service on the same day.</p></div></div>
+        <div className="absolute top-[45%] left-0 bg-white p-4 rounded-xl shadow-lg border border-gray-100 flex items-start gap-3 w-64 z-20"><DollarSign className="w-6 h-6 text-[#112133] mt-1" /><div><h4 className="font-bold text-gray-900">Affordable Price</h4><p className="text-xs text-gray-500 mt-1">High-quality service at budget-friendly prices.</p></div></div>
+        <div className="absolute bottom-[15%] left-[5%] bg-white p-4 rounded-xl shadow-lg border border-gray-100 flex items-start gap-3 w-64 z-20"><CheckCircle2 className="w-6 h-6 text-[#112133] mt-1" /><div><h4 className="font-bold text-gray-900">Fast Service</h4><p className="text-xs text-gray-500 mt-1">Quick service so your device works again fast.</p></div></div>
+        <div className="absolute top-[25%] right-[5%] bg-white p-4 rounded-xl shadow-lg border border-gray-100 flex items-start gap-3 w-64 z-20"><Settings className="w-6 h-6 text-[#112133] mt-1" /><div><h4 className="font-bold text-gray-900">Experienced Technicians</h4><p className="text-xs text-gray-500 mt-1">Skilled technicians with years of repair experience.</p></div></div>
+        <div className="absolute top-[50%] right-0 bg-white p-4 rounded-xl shadow-lg border border-gray-100 flex items-start gap-3 w-64 z-20"><HeadphonesIcon className="w-6 h-6 text-[#112133] mt-1" /><div><h4 className="font-bold text-gray-900">Customer Support</h4><p className="text-xs text-gray-500 mt-1">Friendly support to help you anytime.</p></div></div>
+        <div className="absolute bottom-[20%] right-[5%] bg-white p-4 rounded-xl shadow-lg border border-gray-100 flex items-start gap-3 w-64 z-20"><ShieldCheck className="w-6 h-6 text-[#112133] mt-1" /><div><h4 className="font-bold text-gray-900">Genuine Accessories</h4><p className="text-xs text-gray-500 mt-1">We sell only original and trusted mobile accessories.</p></div></div>
+      </div>
+    </div>
+  </AnimatedSection>
+);
+
+const Footer = ({ setView }) => (
+  <footer className="bg-white dark:bg-slate-900 pt-16 border-t border-gray-100 dark:border-slate-800 transition-colors duration-300">
+    <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12">
+      <div>
+        <div className="flex flex-col items-start mb-4">
+          <div className="flex items-center text-[#0b2c4d] dark:text-blue-400 font-bold text-2xl tracking-tight"><span className="text-[#fbbd06]">FIX</span>KAR<Settings className="w-5 h-5 ml-0.5 text-[#0b2c4d] dark:text-blue-400" /></div>
+          <span className="text-[8px] text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1">Mobile & Electrical Service</span>
+        </div>
+        <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6">Creative digital solutions to grow your brand and achieve lasting success.</p>
+        <div className="flex gap-3">
+          <a href="#" className="bg-[#0b2c4d] dark:bg-slate-800 hover:bg-[#112133] p-2 rounded-full transition-colors"><Facebook className="w-4 h-4 text-white" /></a>
+          <a href="#" className="bg-[#0b2c4d] dark:bg-slate-800 hover:bg-[#112133] p-2 rounded-full transition-colors"><Instagram className="w-4 h-4 text-white" /></a>
+          <a href="#" className="bg-[#0b2c4d] dark:bg-slate-800 hover:bg-[#112133] p-2 rounded-full transition-colors"><div className="w-4 h-4 text-white font-bold text-center leading-none flex items-center justify-center text-xs">X</div></a>
+        </div>
+      </div>
+      <div>
+        <h4 className="font-bold text-[#0b2c4d] dark:text-blue-400 text-lg mb-6">Quick Links</h4>
+        <ul className="flex flex-col gap-3 text-gray-600 dark:text-gray-400 text-sm">
+          <li><button onClick={() => setView('home')} className="hover:text-[#fbbd06] transition-colors">Home</button></li>
+          <li><button onClick={() => setView('about')} className="hover:text-[#fbbd06] transition-colors">About Us</button></li>
+          <li><button onClick={() => setView('contact')} className="hover:text-[#fbbd06] transition-colors">Contact</button></li>
+        </ul>
+      </div>
+      <div>
+        <h4 className="font-bold text-[#0b2c4d] dark:text-blue-400 text-lg mb-6">Our Services</h4>
+        <ul className="flex flex-col gap-3 text-gray-600 dark:text-gray-400 text-sm">
+          <li><button onClick={() => setView('services')} className="hover:text-[#fbbd06] transition-colors">Our Repair Services</button></li>
+          <li><button onClick={() => setView('home')} className="hover:text-[#fbbd06] transition-colors">Mobile Accessories</button></li>
+          <li><button onClick={() => setView('services')} className="hover:text-[#fbbd06] transition-colors">Home Appliance Repair</button></li>
+        </ul>
+      </div>
+      <div>
+        <h4 className="font-bold text-[#0b2c4d] dark:text-blue-400 text-lg mb-6">Support</h4>
+        <ul className="flex flex-col gap-3 text-gray-600 dark:text-gray-400 text-sm">
+          <li><button onClick={() => setView('faq')} className="hover:text-[#fbbd06] transition-colors">FAQ</button></li>
+          <li><a href="#" className="hover:text-[#fbbd06] transition-colors">Terms & Conditions</a></li>
+          <li><a href="#" className="hover:text-[#fbbd06] transition-colors">Privacy Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div className="border-t border-gray-200 dark:border-slate-800 py-6 text-center text-gray-800 dark:text-gray-400 text-sm font-medium transition-colors">
+      Privacy And Cookie Policy || Terms And Conditions || Legal Notice || Created By Nitu
+    </div>
+  </footer>
+);
+
+// --- STATIC PAGES ---
+const AboutView = () => (
+  <div className="max-w-4xl mx-auto py-16 px-6 min-h-[60vh]">
+    <h1 className="text-4xl font-bold text-[#0b2c4d] dark:text-blue-400 mb-6">About FIXKARO</h1>
+    <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+      Founded with a mission to provide reliable, fast, and transparent repair services, FIXKARO is your trusted local destination for all mobile and home appliance issues. We understand how important your devices are to your daily life, which is why our team of certified technicians is dedicated to delivering same-day repairs using only genuine parts.
+    </p>
+    <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+      From shattered screens to malfunctioning air conditioners, we handle it all with precision and care. Thank you for choosing us to keep you connected and comfortable!
+    </p>
+  </div>
+);
+
+const FAQView = () => (
+  <div className="max-w-4xl mx-auto py-16 px-6 min-h-[60vh]">
+    <h1 className="text-4xl font-bold text-[#0b2c4d] dark:text-blue-400 mb-10">Frequently Asked Questions</h1>
+    <div className="space-y-6">
+      {[
+        { q: "How long does a mobile screen repair take?", a: "Most screen replacements are completed within 1-2 hours on the same day." },
+        { q: "Do you offer warranties on your repairs?", a: "Yes, all our repair services come with a standard 90-day warranty on parts and labor." },
+        { q: "Can I book a home visit for my AC repair?", a: "Absolutely! You can use our 'Book Electrical Service' feature to schedule a technician to visit your home." },
+        { q: "Are your mobile accessories original?", a: "Yes, we stock only certified and original accessories to ensure safety and longevity for your devices." }
+      ].map((faq, idx) => (
+        <div key={idx} className="bg-gray-50 dark:bg-slate-800 p-6 rounded-xl">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{faq.q}</h3>
+          <p className="text-gray-600 dark:text-gray-300">{faq.a}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+// --- MAIN APPLICATION ---
+export default function App() {
+  const [view, setView] = useState('home'); // home, login, register, profile, admin, cart, checkout, wishlist, about, services, faq, contact
+  const [searchQuery, setSearchQuery] = useState('');
+  const [bookingType, setBookingType] = useState(null); // 'Repair Service' | 'Electrical Service' | null
+  const [theme, setTheme] = useState('light');
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
+
+  // In-Memory Global State
+  const [state, setState] = useState({
+    users: [mockAdmin],
+    currentUser: null,
+    products: initialProducts,
+    repairServices: initialRepairServices,
+    applianceServices: initialApplianceServices,
+    cart: [],
+    wishlist: [],
+    orders: [],
+    serviceRequests: []
+  });
+
+  // Actions
+  const register = (data) => {
+    if(state.users.find(u => u.email === data.email)) return { error: 'Email already exists' };
+    const newUser = { ...data, id: Date.now().toString(), role: 'user', addresses: [] };
+    setState(prev => ({ ...prev, users: [...prev.users, newUser], currentUser: newUser }));
+    return { success: true };
+  };
+
+  const addUser = (data) => {
+    if(!data.email || !data.name) return;
+    const newUser = { ...data, id: Date.now().toString(), addresses: [] };
+    setState(prev => ({ ...prev, users: [...prev.users, newUser] }));
+  };
+
+  const deleteUser = (id) => {
+    setState(prev => ({ ...prev, users: prev.users.filter(u => u.id !== id) }));
+  };
+
+  const login = (email, password) => {
+    const user = state.users.find(u => u.email === email && u.password === password);
+    if (!user) return { error: 'Invalid email or password' };
+    setState(prev => ({ ...prev, currentUser: user }));
+    return { success: true, role: user.role };
+  };
+
+  const logout = () => setState(prev => ({ ...prev, currentUser: null, cart: [], wishlist: [] }));
+
+  const addToCart = (product) => {
+    setState(prev => {
+      const existing = prev.cart.find(item => item.id === product.id);
+      if (existing) return { ...prev, cart: prev.cart.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i) };
+      return { ...prev, cart: [...prev.cart, { ...product, qty: 1 }] };
+    });
+  };
+
+  const updateCartQty = (id, delta) => {
+    setState(prev => ({
+      ...prev,
+      cart: prev.cart.map(i => i.id === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i)
+    }));
+  };
+
+  const removeFromCart = (id) => setState(prev => ({ ...prev, cart: prev.cart.filter(i => i.id !== id) }));
+
+  const toggleWishlist = (product) => {
+    setState(prev => {
+      const exists = prev.wishlist.find(i => i.id === product.id);
+      if (exists) return { ...prev, wishlist: prev.wishlist.filter(i => i.id !== product.id) };
+      return { ...prev, wishlist: [...prev.wishlist, product] };
+    });
+  };
+
+  const placeOrder = (address, method, total) => {
+    const order = {
+      id: Math.floor(Math.random() * 100000).toString(),
+      userId: state.currentUser.id,
+      items: [...state.cart],
+      address,
+      paymentMethod: method,
+      total,
+      date: new Date().toLocaleDateString(),
+      status: 'Processing'
+    };
+    setState(prev => ({ ...prev, orders: [...prev.orders, order], cart: [] }));
+  };
+
+  // User profile actions
+  const updateUserProfile = (data) => setState(prev => ({ ...prev, currentUser: { ...prev.currentUser, ...data } }));
+  const addAddress = (addr) => setState(prev => ({ ...prev, currentUser: { ...prev.currentUser, addresses: [...(prev.currentUser.addresses || []), addr] } }));
+  const deleteAddress = (index) => setState(prev => {
+    const newAddrs = [...(prev.currentUser.addresses || [])];
+    newAddrs.splice(index, 1);
+    return { ...prev, currentUser: { ...prev.currentUser, addresses: newAddrs } };
+  });
+
+  const bookService = (data) => {
+    const newService = {
+      id: Math.floor(Math.random() * 100000).toString(),
+      userId: state.currentUser.id,
+      status: 'Pending',
+      ...data
+    };
+    setState(prev => ({ ...prev, serviceRequests: [...prev.serviceRequests, newService] }));
+  };
+
+  const addReview = (productId, review) => {
+    setState(prev => ({
+      ...prev,
+      products: prev.products.map(p => p.id === productId ? { ...p, reviews: [...(p.reviews || []), review] } : p)
+    }));
+  };
+
+  // Admin actions
+  const updateOrderStatus = (id, status) => setState(prev => ({ ...prev, orders: prev.orders.map(o => o.id === id ? { ...o, status } : o) }));
+  const updateServiceStatus = (id, status) => setState(prev => ({ ...prev, serviceRequests: prev.serviceRequests.map(s => s.id === id ? { ...s, status } : s) }));
+  const updateProductStock = (id, stock) => setState(prev => ({ ...prev, products: prev.products.map(p => p.id === id ? { ...p, stock } : p) }));
+  
+  const addProduct = (data) => {
+    if(!data.name || !data.price) return;
+    setState(prev => ({ ...prev, products: [...prev.products, { ...data, id: Date.now(), discount: 0, originalPrice: data.price, stock: parseInt(data.stock)||0, reviews: [] }] }));
+  };
+  const deleteProduct = (id) => setState(prev => ({ ...prev, products: prev.products.filter(p => p.id !== id) }));
+  const updateProductDiscount = (id, discount) => setState(prev => ({
+    ...prev, products: prev.products.map(p => {
+      if(p.id !== id) return p;
+      const newPrice = p.originalPrice - (p.originalPrice * (discount / 100));
+      return { ...p, discount, price: Math.round(newPrice) };
+    })
+  }));
+
+  const addCatalogService = (data) => {
+    if(!data.name) return;
+    const newService = { id: Date.now(), name: data.name, img: data.img || 'https://via.placeholder.com/300' };
+    if(data.category === 'repair') setState(prev => ({...prev, repairServices: [...prev.repairServices, newService]}));
+    else setState(prev => ({...prev, applianceServices: [...prev.applianceServices, newService]}));
+  };
+
+  const deleteCatalogService = (category, id) => {
+    if(category === 'repair') setState(prev => ({...prev, repairServices: prev.repairServices.filter(s => s.id !== id)}));
+    else setState(prev => ({...prev, applianceServices: prev.applianceServices.filter(s => s.id !== id)}));
+  };
+
+  const contextValue = {
+    state, register, login, logout, addToCart, updateCartQty, removeFromCart, toggleWishlist,
+    searchQuery, setSearchQuery, placeOrder, updateUserProfile, addAddress, deleteAddress,
+    updateOrderStatus, addProduct, deleteProduct, updateProductDiscount, updateProductStock, addReview,
+    bookService, updateServiceStatus, theme, toggleTheme,
+    addUser, deleteUser, addCatalogService, deleteCatalogService
+  };
+
+  const handleBookClick = (type) => {
+    if(!state.currentUser) {
+      alert("Please login to book a service.");
+      setView('login');
+    } else {
+      setBookingType(type);
+    }
+  };
+
+  return (
+    <AppContext.Provider value={contextValue}>
+      <div className={`min-h-screen font-sans transition-colors duration-300 ${theme === 'dark' ? 'dark bg-slate-900 text-white' : 'bg-white text-gray-900'} overflow-x-hidden`}>
+        <TopBar />
+        <Navbar setView={setView} />
+        
+        {view === 'home' && (
+          <>
+            <Hero />
+            <Categories />
+            <Products />
+            <ServicesGrid 
+              title="Our Repair Services" 
+              actionText="Book Repair Service" 
+              items={state.repairServices} 
+              onActionClick={() => handleBookClick('Mobile & Electronic Repair')}
+            />
+            <ServicesGrid 
+              title="Home Appliance Repair" 
+              actionText="Book Electrical Service" 
+              items={state.applianceServices} 
+              onActionClick={() => handleBookClick('Home Appliance Repair')}
+            />
+            <Features />
+            <PromoBanner />
+            <Testimonials />
+            <ContactSection />
+          </>
+        )}
+
+        {view === 'services' && (
+          <div className="py-12">
+            <ServicesGrid 
+              title="Our Repair Services" 
+              actionText="Book Repair Service" 
+              items={state.repairServices} 
+              onActionClick={() => handleBookClick('Mobile & Electronic Repair')}
+            />
+            <ServicesGrid 
+              title="Home Appliance Repair" 
+              actionText="Book Electrical Service" 
+              items={state.applianceServices} 
+              onActionClick={() => handleBookClick('Home Appliance Repair')}
+            />
+          </div>
+        )}
+
+        {view === 'about' && <AboutView />}
+        {view === 'faq' && <FAQView />}
+        {view === 'contact' && <div className="py-12"><ContactSection /></div>}
+
+        {view === 'login' && <AuthView setView={setView} mode="login" />}
+        {view === 'register' && <AuthView setView={setView} mode="register" />}
+        {view === 'cart' && <CartView setView={setView} />}
+        {view === 'checkout' && <CheckoutView setView={setView} />}
+        {view === 'profile' && <UserProfileView />}
+        {view === 'admin' && <AdminDashboard />}
+        {view === 'wishlist' && (
+          <div className="max-w-5xl mx-auto py-12 px-6 min-h-[60vh]">
+            <h2 className="text-3xl font-bold text-[#0b2c4d] mb-8">My Wishlist</h2>
+            {state.wishlist.length === 0 ? <p>Your wishlist is empty.</p> : (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {state.wishlist.map(p => (
+                  <div key={p.id} className="border rounded-lg p-4 bg-white shadow-sm flex flex-col">
+                    <img src={p.img} className="w-full h-32 object-cover rounded mb-3" />
+                    <h3 className="font-bold text-sm">{p.name}</h3>
+                    <p className="font-bold text-[#0b2c4d] mt-1 mb-3">₹{p.price}</p>
+                    <button onClick={() => addToCart(p)} className="mt-auto bg-[#fbbd06] text-xs font-bold py-2 rounded">Add to Cart</button>
+                    <button onClick={() => toggleWishlist(p)} className="mt-2 text-xs text-red-500 hover:underline">Remove</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Global Service Booking Modal */}
+        {bookingType && (
+          <div className="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl max-w-lg w-full p-6 md:p-8 relative shadow-2xl">
+              <button onClick={() => setBookingType(null)} className="absolute top-4 right-4 text-gray-500 hover:text-black bg-gray-100 rounded-full p-1"><X className="w-5 h-5"/></button>
+              <h2 className="text-2xl font-bold text-[#0b2c4d] mb-2">Book a Service</h2>
+              <p className="text-gray-500 text-sm mb-6">Service Category: <strong className="text-gray-900">{bookingType}</strong></p>
+              
+              {(!state.currentUser?.addresses || state.currentUser.addresses.length === 0) ? (
+                <div className="bg-yellow-50 text-yellow-800 p-4 rounded-lg text-sm mb-4">
+                  You need to add a service address in your profile first.
+                  <button onClick={() => {setBookingType(null); setView('profile');}} className="ml-2 font-bold underline">Go to Profile</button>
+                </div>
+              ) : (
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const fd = new FormData(e.target);
+                    bookService({
+                      type: bookingType,
+                      device: fd.get('device'),
+                      issue: fd.get('issue'),
+                      date: fd.get('date'),
+                      address: state.currentUser.addresses[fd.get('addressIndex')]
+                    });
+                    alert("Service booked successfully! Check your Profile for status.");
+                    setBookingType(null);
+                    setView('profile');
+                  }}
+                  className="flex flex-col gap-4"
+                >
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Select Service Address</label>
+                    <select name="addressIndex" required className="w-full border p-2.5 rounded-lg text-sm focus:outline-none focus:border-[#0b2c4d]">
+                      {state.currentUser.addresses.map((addr, idx) => (
+                        <option key={idx} value={idx}>{addr.type} - {addr.street}, {addr.city}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Device / Appliance Model</label>
+                    <input type="text" name="device" required placeholder="e.g. iPhone 13 Pro or LG AC 1.5 Ton" className="w-full border p-2.5 rounded-lg text-sm focus:outline-none focus:border-[#0b2c4d]" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Issue Description</label>
+                    <textarea name="issue" required rows="3" placeholder="Briefly describe the problem..." className="w-full border p-2.5 rounded-lg text-sm focus:outline-none focus:border-[#0b2c4d] resize-none"></textarea>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Date</label>
+                    <input type="date" name="date" required min={new Date().toISOString().split('T')[0]} className="w-full border p-2.5 rounded-lg text-sm focus:outline-none focus:border-[#0b2c4d]" />
+                  </div>
+                  <button type="submit" className="w-full bg-[#fbbd06] text-[#0b2c4d] font-bold text-lg py-3 rounded-lg mt-2 hover:bg-yellow-500 transition">
+                    Confirm Booking
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
+
+        <Footer setView={setView} />
+      </div>
+    </AppContext.Provider>
+  );
+}
